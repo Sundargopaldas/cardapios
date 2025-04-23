@@ -164,7 +164,12 @@ def processa_prato(nome: str, descricao: str, preco: float, categoria: str, imag
     try:
         folder_path = os.path.join("uploads", "geradas")
         os.makedirs(folder_path, exist_ok=True)
+
         image_name = sanitize_filename(nome) + ".png"
+        #image_name = sanitize_filename(imagem.replace('_', ' '))
+        #image_name = sanitize_filename(imagem)
+        #image_name = sanitize_filename(nome) + ".png"
+
         image_path = os.path.join(folder_path, image_name)
 
         if usa_gpt:
