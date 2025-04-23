@@ -158,7 +158,17 @@ class LayoutRequest(BaseModel):
 
 def processa_prato(nome: str, descricao: str, preco: float, categoria: str, imagem: str, usa_gpt: bool, modo_full: bool):
     log(f">> Prato: {nome} | R${preco:.2f} | Categoria: {categoria} | Imagem: {imagem}")
-    prompt = f"Crie uma imagem realista de um prato de comida chamado \"{nome}\". Ele deve conter os seguintes ingredientes: {descricao}."
+
+    prompt = (
+        f"Fotografia altamente realista de um prato de comida típico brasileiro chamado \"{nome}\". "
+        f"O prato está servido em um prato de porcelana sobre uma mesa de madeira. "
+        f"Ele deve conter: {descricao}. "
+        "A imagem deve ter iluminação natural suave, foco nítido, textura visível dos ingredientes e fundo desfocado. "
+        "Formato de apresentação como em fotos de menus profissionais."
+    )
+
+    #prompt = f"Crie uma imagem realista de um prato de comida chamado \"{nome}\". Ele deve conter os seguintes ingredientes: {descricao}."
+
     log(f">> Prompt para imagem: {prompt}")
 
     try:
@@ -166,9 +176,6 @@ def processa_prato(nome: str, descricao: str, preco: float, categoria: str, imag
         os.makedirs(folder_path, exist_ok=True)
 
         image_name = sanitize_filename(nome) + ".png"
-        #image_name = sanitize_filename(imagem.replace('_', ' '))
-        #image_name = sanitize_filename(imagem)
-        #image_name = sanitize_filename(nome) + ".png"
 
         image_path = os.path.join(folder_path, image_name)
 
