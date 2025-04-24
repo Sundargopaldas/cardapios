@@ -2,8 +2,8 @@ import random
 import os, glob, re
 import pandas as pd
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFont
 from math import cos, sin, pi
+from PIL import Image, ImageDraw, ImageFont
 
 def sanitize_filename(name: str) -> str:    
     return re.sub(r'[\\/*?:"<>|]', "_", name)
@@ -38,32 +38,9 @@ def quebra_linhas(texto, fonte, max_width, draw):
 def gerar_cardapio_formatado(df_path="uploads/cardapios/arquivo.xlsx"):
     log(">> Iniciando renderização do cardápio formatado")
     largura, cor_fundo, cor_detalhe = 1000, (45, 12, 25), (230, 190, 140)
-    fontes = carregar_fontes()
-    df = pd.read_excel(df_path)
-    espacamento_horizontal, largura_img, altura_img = 80, 320, 260
-    x_start_esq = (largura - (largura_img * 2 + espacamento_horizontal)) // 2
-    x_start_dir = x_start_esq + largura_img + espacamento_horizontal
-    y_start, espacamento_vertical = 300, 400
-    altura = calcular_altura(df, y_start, espacamento_vertical)
-    img = Image.new("RGB", (largura, altura), cor_fundo)
-    draw = ImageDraw.Draw(img)
-    inserir_logo(img, largura)
-    inserir_titulo(draw, largura, fontes['titulo'], cor_detalhe)
-    y_max = desenhar_pratos(img, draw, df, largura, largura_img, altura_img, x_start_esq, x_start_dir, y_start, espacamento_vertical, fontes, cor_detalhe)
 
-    espaco_entre_texto_e_borda = 80  # mais espaço no rodapé
-    espaco_texto_rodape = 50         # altura do texto "Bom Apetite"
-    margem_inferior = 40             # margem de segurança abaixo do texto
-    altura_final = y_max + espaco_entre_texto_e_borda + espaco_texto_rodape + margem_inferior
-
-    img = img.crop((0, 0, largura, altura_final))
-    draw = ImageDraw.Draw(img)
-    inserir_rodape(draw, largura, altura_final, fontes['rodape'], cor_detalhe, margem_inferior, espaco_texto_rodape)
-    desenhar_molduras(draw, largura, altura_final, cor_detalhe)
-    salvar_imagem(img, "uploads/final", "cardapio_final.png")
-
-def carregar_fontes():
-    return {
+    #fontes = carregar_fontes()
+    fontes = {
         'titulo': ImageFont.truetype("arial.ttf", 48),
         'prato': ImageFont.truetype("arial.ttf", 28),
         'desc': ImageFont.truetype("arial.ttf", 20),
@@ -71,20 +48,45 @@ def carregar_fontes():
         'rodape': ImageFont.truetype("arial.ttf", 36),
     }
 
-def calcular_altura(df, y_start, espacamento_vertical):
-    qtd_linhas = (min(len(df), 6) + 1) // 2
-    return y_start + qtd_linhas * espacamento_vertical + 200
+    df = pd.read_excel(df_path)
+    espacamento_horizontal, largura_img, altura_img = 80, 320, 260
+    x_start_esq = (largura - (largura_img * 2 + espacamento_horizontal)) // 2
+    x_start_dir = x_start_esq + largura_img + espacamento_horizontal
+    y_start, espacamento_vertical = 300, 400
 
-def inserir_logo(img, largura):
+    #altura = calcular_altura(df, y_start, espacamento_vertical)
+    qtd_linhas = (min(len(df), 6) + 1) // 2
+    altura = y_start + qtd_linhas * espacamento_vertical + 200    
+
+    img = Image.new("RGB", (largura, altura), cor_fundo)
+    draw = ImageDraw.Draw(img)
+
+    #inserir_logo(img, largura)
     logos = glob.glob("uploads/logo/*")
     if logos:
         logo = Image.open(logos[0]).resize((150, 150))
-        img.paste(logo, ((largura - logo.width) // 2, 40), logo if logo.mode == 'RGBA' else None)
+        img.paste(logo, ((largura - logo.width) // 2, 40), logo if logo.mode == 'RGBA' else None)    
 
-def inserir_titulo(draw, largura, fonte, cor):
+    #inserir_titulo(draw, largura, fontes['titulo'], cor_detalhe)
     titulo = "CARDÁPIO"
-    titulo_w = draw.textlength(titulo, fonte)
-    draw.text(((largura - titulo_w) // 2, 210), titulo, cor, fonte)
+    titulo_w = draw.textlength(titulo, fontes['titulo'])
+    draw.text(((largura - titulo_w) // 2, 210), titulo, cor_detalhe, fontes['titulo'])    
+
+    y_max = desenhar_pratos(img, draw, df, largura, largura_img, altura_img, x_start_esq, x_start_dir, y_start, espacamento_vertical, fontes, cor_detalhe)
+
+    espaco_entre_texto_e_borda = 80
+    espaco_texto_rodape = 50
+    margem_inferior = 40
+    altura_final = y_max + espaco_entre_texto_e_borda + espaco_texto_rodape + margem_inferior
+
+    img = img.crop((0, 0, largura, altura_final))
+    draw = ImageDraw.Draw(img)
+    inserir_rodape(draw, largura, altura_final, fontes['rodape'], cor_detalhe, margem_inferior, espaco_texto_rodape)
+
+    draw.rectangle([40, 40, largura - 40, altura_final - 40], outline=cor_detalhe, width=3)
+    draw.rectangle([60, 60, largura - 60, altura_final - 60], outline=cor_detalhe, width=1)
+
+    salvar_imagem(img, "uploads/final", "cardapio_final.png")
 
 def desenhar_pratos(img, draw, df, largura, largura_img, altura_img, x_start_esq, x_start_dir, y_start, espacamento_vertical, fontes, cor_detalhe):
     y_max = 0
@@ -98,17 +100,17 @@ def desenhar_pratos(img, draw, df, largura, largura_img, altura_img, x_start_esq
         except FileNotFoundError:
             log(f"Imagem não encontrada: {imagem_path}")
             continue
-        x_atual = calcular_posicao_x(i, len(df), largura, largura_img, x_start_esq, x_start_dir)
+
+        #x_atual = calcular_posicao_x(i, len(df), largura, largura_img, x_start_esq, x_start_dir)
+        if i == len(df) - 1 and len(df) % 2 != 0:
+            return (largura - largura_img) // 2
+        x_atual =  x_start_esq if i % 2 == 0 else x_start_dir        
+
         y_atual = y_start + (espacamento_vertical * (i // 2))
         img.paste(imagem_prato, (x_atual, y_atual))
         y_texto = y_atual + altura_img + 10
         y_max = desenhar_textos(draw, prato, x_atual, y_texto, largura_img, fontes, cor_detalhe, y_max)
     return y_max
-
-def calcular_posicao_x(i, total, largura, largura_img, x_start_esq, x_start_dir):
-    if i == total - 1 and total % 2 != 0:
-        return (largura - largura_img) // 2
-    return x_start_esq if i % 2 == 0 else x_start_dir
 
 def desenhar_textos(draw, prato, x, y_texto, largura_img, fontes, cor_detalhe, y_max):
     nome = prato['nome'].title()
@@ -130,10 +132,6 @@ def inserir_rodape(draw, largura, altura_final, fonte, cor, margem_inferior=40, 
     altura_texto = bbox[3] - bbox[1]
     y_pos = altura_final - margem_inferior - altura_texto - deslocamento_extra
     draw.text(((largura - rodape_w) // 2, y_pos), rodape, cor, font=fonte)
-
-def desenhar_molduras(draw, largura, altura_final, cor):
-    draw.rectangle([40, 40, largura - 40, altura_final - 40], outline=cor, width=3)
-    draw.rectangle([60, 60, largura - 60, altura_final - 60], outline=cor, width=1)
 
 def salvar_imagem(img, diretorio, nome_arquivo):
     os.makedirs(diretorio, exist_ok=True)
