@@ -1,10 +1,88 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<link rel="stylesheet" href="style.css">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CardápioAI - Visualizar Layouts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #35424a;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: left;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        header nav {
+            float: right;
+            margin-top: 10px;
+        }
+        .highlight, header .current a {
+            color: #e8491d;
+            font-weight: bold;
+        }
+        .layouts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .layout {
+            width: 30%;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .layout img {
+            width: 100%;
+            height: auto;
+        }
+        .button {
+            display: inline-block;
+            font-size: 18px;
+            color: #ffffff;
+            background: #e8491d;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -62,13 +140,12 @@
         button.textContent = `Selecionar Layout ${i}`;
         button.onclick = () => {
             const layoutSelecionado = `cardapio${i}.png`;
-            console.log(layoutSelecionado);
 
-            // salva em cookie e redireciona
-            document.cookie = `layoutSelecionado=cardapio${i}.png; path=/; max-age=86400`; // expira em 1 dia
-            window.location.href = "Prevs.html";
-
+// salva em cookie e redireciona
+        document.cookie = `layoutSelecionado=cardapio${i}.png; path=/; max-age=86400`; // expira em 1 dia
+        window.location.href = "Prevs.html";
         };
+
 
         layoutDiv.appendChild(img);
         layoutDiv.appendChild(button);
