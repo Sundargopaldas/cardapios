@@ -1,90 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+    <link rel="stylesheet" href="style.css">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CardápioAI - Inserir Conteúdo v1</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-            padding: 20px;
-        }
-        header {
-            background: #35424a;
-            color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #e8491d 3px solid;
-        }
-        header a {
-            color: #ffffff;
-            text-decoration: none;
-            text-transform: uppercase;
-            font-size: 16px;
-        }
-        header ul {
-            padding: 0;
-            list-style: none;
-        }
-        header li {
-            display: inline;
-            padding: 0 20px 0 20px;
-        }
-        header #branding {
-            float: left;
-        }
-        header #branding h1 {
-            margin: 0;
-        }
-        header nav {
-            float: right;
-            margin-top: 10px;
-        }
-        .highlight, header .current a {
-            color: #e8491d;
-            font-weight: bold;
-        }
-        .form-container {
-            background: #ffffff;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 5px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input[type="file"],
-        .form-group input[type="text"],
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-        .button {
-            display: inline-block;
-            font-size: 18px;
-            color: #ffffff;
-            background: #e8491d;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -140,6 +60,7 @@
     <strong>Processando... Por favor, aguarde.</strong>
 </div>
 
+<script src="config.js"></script>
 <script>
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -179,7 +100,7 @@ document.getElementById('menu-form').addEventListener('submit', async function(e
         console.log("🟡 Enviando arquivo Excel...");
         const formDataExcel = new FormData();
         formDataExcel.append("file", excelFile);
-        const excelResp = await fetch("http://localhost:8001/upload-cardapio", { method: "POST", body: formDataExcel });
+        const excelResp = await fetch(`${API_BASE_URL}/upload-cardapio`, { method: "POST", body: formDataExcel });
         const excelData = await excelResp.json();
         console.log("✅ Excel enviado:", excelData);
 
@@ -193,7 +114,7 @@ document.getElementById('menu-form').addEventListener('submit', async function(e
                 console.log(`📸 Adicionando imagem: ${imagesFiles[i].name}`);
                 formDataImages.append("files", imagesFiles[i]);
             }
-            const imagesResp = await fetch("http://localhost:8001/upload-images", { method: "POST", body: formDataImages });
+            await fetch(`${API_BASE_URL}/upload-images`, { method: "POST", body: formDataImages });
             const imagesData = await imagesResp.json();
             console.log("✅ Imagens enviadas:", imagesData);
         } else {
@@ -205,7 +126,7 @@ document.getElementById('menu-form').addEventListener('submit', async function(e
             console.log("🟡 Enviando logo...");
             const formDataLogo = new FormData();
             formDataLogo.append("file", logoFile);
-            const logoResp = await fetch("http://localhost:8001/upload-logo", { method: "POST", body: formDataLogo });
+            await fetch(`${API_BASE_URL}/upload-logo`, { method: "POST", body: formDataLogo });
             const logoData = await logoResp.json();
             console.log("✅ Logo enviado:", logoData);
         } else {
@@ -233,7 +154,7 @@ document.getElementById('menu-form').addEventListener('submit', async function(e
         const layoutsData = await layoutsResp.json();
         console.log("✅ Layouts gerados com sucesso:", layoutsData);
 
-        alert("✅ Layouts gerados com sucesso!");
+        window.location.href = "visualizar.html";
 
     } catch (error) {
         console.error("❌ Erro durante o processamento:", error);

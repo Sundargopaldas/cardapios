@@ -1,117 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>CardápioAI - Pré-visualização do Layout</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-            padding: 20px;
-        }
-        header {
-            background: #35424a;
-            color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #e8491d 3px solid;
-        }
-        header a {
-            color: #ffffff;
-            text-decoration: none;
-            text-transform: uppercase;
-            font-size: 16px;
-        }
-        header ul {
-            padding: 0;
-            list-style: none;
-        }
-        header li {
-            display: inline;
-            padding: 0 20px 0 20px;
-        }
-        header #branding {
-            float: left;
-        }
-        header #branding h1 {
-            margin: 0;
-        }
-        header nav {
-            float: right;
-            margin-top: 10px;
-        }
-        .highlight, header .current a {
-            color: #e8491d;
-            font-weight: bold;
-        }
-        .preview-container {
-            background: #fff;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-        }
-        .preview-image {
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            margin: 0 auto;
-            display: block;
-        }
         .button-container {
             text-align: center;
             margin-top: 20px;
         }
-        .button {
-            display: inline-block;
-            font-size: 18px;
-            color: #ffffff;
-            background: #e8491d;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
+        .button-container .button {
             margin: 0 10px;
-        }
-        .loading {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-        }
-        #loading-overlay {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
+        }        
     </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardápioAI - Pré-visualização do Layout</title>
+
 </head>
 <body>
     <header>
@@ -131,130 +34,45 @@
 
     <div class="container">
         <h2>Pré-visualização do Layout</h2>
-        <div class="preview-container">
-            <div id="loading-overlay">
-                <img src="tempo.gif" alt="Carregando..." style="width: 50px;">
-            </div>
-            <img src="" alt="Pré-visualização do Cardápio" class="preview-image" id="preview-image">
-        </div>
-        <div class="button-container">
-            <a href="inserir-conteudo.html" class="button">Voltar</a>
-            
-            <div id="tamanho-folha" style="background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 5px; width: 300px; margin: 20px auto; display: inline-block;">
-                <h3 style="text-align: center; color: #35424a;">Selecione o tamanho da folha</h3>
-                <form id="form-tamanho">
-                    <div style="margin-bottom: 15px;">
-                        <input type="radio" id="a4" name="tamanho" value="a4" checked>
-                        <label for="a4">A4 (210mm x 297mm)</label>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <input type="radio" id="a5" name="tamanho" value="a5">
-                        <label for="a5">A5 (148mm x 210mm)</label>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <input type="radio" id="personalizado" name="tamanho" value="personalizado">
-                        <label for="personalizado">Personalizado</label>
-                    </div>
-                    <div id="campos-personalizado" style="display: none;">
-                        <input type="number" id="largura" placeholder="Largura (mm)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                        <input type="number" id="altura" placeholder="Altura (mm)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                    </div>
-                    <button type="button" class="button" onclick="salvarTamanho()" style="width: 100%;">Salvar Tamanho</button>
-                </form>
-            </div>
+        
+        <div id="preview-container" style="text-align: center; padding: 20px;"></div>
 
+        <div class="button-container">
+            <button onclick="history.back()" class="button">Voltar</button>
             <a href="Geracao.html" class="button">Aprovar Layout</a>
-        </div>
+        </div>        
+
     </div>
 
+    <script src="config.js"></script>
     <script>
-        // Função para atualizar a imagem com timestamp
-        function atualizarImagem() {
-            const timestamp = new Date().getTime();
-            const previewImage = document.getElementById('preview-image');
-            previewImage.src = `layouts/cardapio_layout_1.png?t=${timestamp}`;
+        const container = document.getElementById("preview-container");
+    
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
         }
-
-        // Carregar tamanho salvo e atualizar imagem ao iniciar a página
-        window.addEventListener('load', function() {
-            atualizarImagem();
-            const tamanhoSalvo = localStorage.getItem('tamanhoCardapio');
-            if (tamanhoSalvo) {
-                const dimensoes = JSON.parse(tamanhoSalvo);
-                if (dimensoes.largura === 210 && dimensoes.altura === 297) {
-                    document.getElementById('a4').checked = true;
-                } else if (dimensoes.largura === 148 && dimensoes.altura === 210) {
-                    document.getElementById('a5').checked = true;
-                } else {
-                    document.getElementById('personalizado').checked = true;
-                    document.getElementById('campos-personalizado').style.display = 'block';
-                    document.getElementById('largura').value = dimensoes.largura;
-                    document.getElementById('altura').value = dimensoes.altura;
-                }
-            }
-        });
-
-        // Adicionar evento de mudança para todos os radio buttons
-        document.querySelectorAll('input[name="tamanho"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const camposPersonalizado = document.getElementById('campos-personalizado');
-                if (this.value === 'personalizado') {
-                    camposPersonalizado.style.display = 'block';
-                } else {
-                    camposPersonalizado.style.display = 'none';
-                }
-            });
-        });
-
-        async function salvarTamanho() {
-            const tamanho = document.querySelector('input[name="tamanho"]:checked').value;
-            let dimensoes = {};
-
-            if (tamanho === 'a4') {
-                dimensoes = { largura: 210, altura: 297 };
-            } else if (tamanho === 'a5') {
-                dimensoes = { largura: 148, altura: 210 };
-            } else {
-                const largura = parseInt(document.getElementById('largura').value);
-                const altura = parseInt(document.getElementById('altura').value);
-                
-                if (!largura || !altura) {
-                    alert('Por favor, preencha largura e altura para o tamanho personalizado.');
-                    return;
-                }
-                
-                dimensoes = { largura, altura };
-            }
-
-            try {
-                const response = await fetch('/salvar-tamanho', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dimensoes)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erro ao salvar tamanho');
-                }
-
-                localStorage.setItem('tamanhoCardapio', JSON.stringify(dimensoes));
-                
-                // Atualizar a imagem de preview
-                atualizarImagem();
-
-                alert('Tamanho salvo com sucesso!');
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao salvar o tamanho. Por favor, tente novamente.');
-            }
+    
+        const layout = getCookie("layoutSelecionado");
+    
+        console.log("🧠 Cookie lido: layoutSelecionado =", layout);
+    
+        if (!layout) {
+            console.warn("⚠️ Nenhum layout foi selecionado no cookie.");
+            container.innerHTML = "<p>Nenhum layout foi selecionado.</p>";
+        } else {
+            const img = document.createElement("img");
+            img.src = `${API_BASE_URL}/cardapio/${layout}`;
+            img.alt = "Layout Selecionado";
+    
+            console.log("📷 Imagem sendo carregada de:", img.src);
+    
+            img.onload = () => console.log("✅ Imagem carregada com sucesso.");
+            img.onerror = () => console.error("❌ Erro ao carregar a imagem:", img.src);
+    
+            container.appendChild(img);
         }
-
-        // Atualizar preview quando a imagem for carregada
-        document.getElementById('preview-image').addEventListener('load', function() {
-            document.getElementById('loading-overlay').style.display = 'none';
-        });
-    </script>
+    </script>    
+    
 </body>
 </html>

@@ -266,27 +266,16 @@ async def obter_cardapio(nome_arquivo: str):
     else:
         raise HTTPException(status_code=404, detail="Cardápio não encontrado")
 
-@app.post("/selecionar-layout")
-async def selecionar_layout(data: dict = Body(...)):
-    global layout_selecionado
+@app.post("/aprovar-layout")
+async def aprovar_layout(data: dict = Body(...)):
+    log(f"Recebido POST /aprovar-layout com data: {data}")
     layout = data.get("layout")
     if not layout:
-        raise HTTPException(status_code=400, detail="Layout não especificado")    
-    layout_selecionado = layout
-    log(f">> Layout selecionado: {layout}")
-    return {"message": "Layout registrado com sucesso"}
-
-# @app.get("/escolhido")
-# async def obter_layout_escolhido():
-#     if not layout_selecionado:
-#         raise HTTPException(status_code=404, detail="Nenhum layout foi selecionado")
-
-#     caminho = os.path.join("uploads", "final", f"{layout_selecionado}.png")
-#     if os.path.exists(caminho):
-#         log(f">> Servindo layout selecionado: {layout_selecionado}")
-#         return FileResponse(caminho, media_type="image/png")
-#     else:
-#         raise HTTPException(status_code=404, detail="Cardápio não encontrado")
+        log("❌ Nenhum layout especificado no body.")
+        raise HTTPException(status_code=400, detail="Layout não especificado")
+    
+    log(f"✅ Layout aprovado: {layout}")
+    return {"message": "Layout aprovado com sucesso"}
 
 if __name__ == "__main__":
     import uvicorn
