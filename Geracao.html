@@ -72,6 +72,11 @@
             text-decoration: none;
             margin-top: 20px;
         }
+        #downloadStatus {
+            margin-top: 20px;
+            color: #666;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -95,8 +100,94 @@
         <div class="pdf-container">
             <h3>Seu PDF foi gerado com sucesso!</h3>
             <p>Clique no botão abaixo para fazer o download do seu cardápio em formato PDF.</p>
-            <a href="#" class="button" download>Download PDF</a>
+            <button onclick="generatePDF()" class="button">Download PDF</button>
+            <div id="downloadStatus"></div>
         </div>
     </div>
+
+    <script>
+        // Dados do cardápio padrão (caso não haja dados no localStorage)
+        const defaultItems = [
+            {
+                nome: "Picanha na Chapa",
+                descricao: "Picanha grelhada com arroz e farofa",
+                preco: 45.00
+            },
+            {
+                nome: "Filé de Peixe à Milanesa",
+                descricao: "Peixe empanado com arroz e legumes",
+                preco: 35.00
+            },
+            {
+                nome: "Estrogonofe de Frango",
+                descricao: "Frango em molho cremoso com arroz e batata palha",
+                preco: 25.00
+            },
+            {
+                nome: "À la minute",
+                descricao: "Carne, arroz, feijão e ovo",
+                preco: 20.00
+            },
+            {
+                nome: "Bife Acebolado",
+                descricao: "Bife com cebolas caramelizadas, arroz e feijão",
+                preco: 22.00
+            },
+            {
+                nome: "Omelete",
+                descricao: "Ovos, queijo, presunto e temperos",
+                preco: 15.00
+            }
+        ];
+
+        async function generatePDF() {
+            const statusDiv = document.getElementById('downloadStatus');
+            statusDiv.textContent = 'Gerando PDF...';
+            
+            try {
+                // Usar os dados do localStorage ou os dados padrão
+                const menuData = JSON.parse(localStorage.getItem('menuItems')) || defaultItems;
+                console.log("Dados do cardápio:", menuData);
+
+                const response = await fetch('http://localhost:8001/generate-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ items: menuData })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.textContent = 'PDF gerado com sucesso! Iniciando download...';
+                    
+                    // Criar um link temporário para download
+                    const link = document.createElement('a');
+                    link.href = data.pdfUrl;
+                    link.download = 'cardapio.pdf';
+                    
+                    // Fazer o download usando fetch para garantir que o arquivo seja baixado corretamente
+                    const pdfResponse = await fetch(data.pdfUrl);
+                    const pdfBlob = await pdfResponse.blob();
+                    const pdfUrl = window.URL.createObjectURL(pdfBlob);
+                    
+                    link.href = pdfUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(pdfUrl);
+                    
+                    statusDiv.textContent = 'Download concluído!';
+                } else {
+                    statusDiv.textContent = 'Erro ao gerar o PDF. Por favor, tente novamente.';
+                    console.error('Erro:', data.error);
+                }
+            } catch (error) {
+                statusDiv.textContent = 'Erro ao gerar o PDF. Por favor, tente novamente.';
+                console.error('Erro:', error);
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardápioAI - Inserir Conteúdo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #35424a;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
+        }
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: left;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        header nav {
+            float: right;
+            margin-top: 10px;
+        }
+        .highlight {
+            color: #e8491d;
+            font-weight: bold;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .menu-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            font-size: 18px;
+            color: #ffffff;
+            background: #e8491d;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><span class="highlight">Cardápio</span>AI</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Início</a></li>
+                    <li class="current"><a href="inserir-conteudo.html">Criar Cardápio</a></li>
+                    <li><a href="#">Sobre</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Inserir Conteúdo do Cardápio</h2>
+        <div class="form-container">
+            <div id="menu-items">
+                <!-- Os itens do menu serão adicionados aqui -->
+            </div>
+            <button onclick="addMenuItem()" class="button">Adicionar Item</button>
+            <div class="button-container">
+                <button onclick="previewMenu()" class="button">Visualizar Cardápio</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modelo de dados padrão
+        const defaultItems = [
+            {
+                nome: "Picanha na Chapa",
+                descricao: "Picanha grelhada com arroz e farofa",
+                preco: 45.00
+            },
+            {
+                nome: "Filé de Peixe à Milanesa",
+                descricao: "Peixe empanado com arroz e legumes",
+                preco: 35.00
+            },
+            {
+                nome: "Estrogonofe de Frango",
+                descricao: "Frango em molho cremoso com arroz e batata palha",
+                preco: 25.00
+            },
+            {
+                nome: "À la minute",
+                descricao: "Carne, arroz, feijão e ovo",
+                preco: 20.00
+            },
+            {
+                nome: "Bife Acebolado",
+                descricao: "Bife com cebolas caramelizadas, arroz e feijão",
+                preco: 22.00
+            },
+            {
+                nome: "Omelete",
+                descricao: "Ovos, queijo, presunto e temperos",
+                preco: 15.00
+            }
+        ];
+
+        // Carregar itens salvos ou usar padrão
+        let menuItems = JSON.parse(localStorage.getItem('menuItems')) || defaultItems;
+
+        function createMenuItemHTML(item, index) {
+            return `
+                <div class="menu-item">
+                    <h3>Item ${index + 1}</h3>
+                    <div class="form-group">
+                        <label>Nome do Prato:</label>
+                        <input type="text" value="${item.nome}" onchange="updateItem(${index}, 'nome', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição:</label>
+                        <textarea onchange="updateItem(${index}, 'descricao', this.value)">${item.descricao}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Preço:</label>
+                        <input type="number" step="0.01" value="${item.preco}" onchange="updateItem(${index}, 'preco', this.value)">
+                    </div>
+                    <button onclick="removeItem(${index})" class="button">Remover</button>
+                </div>
+            `;
+        }
+
+        function renderMenuItems() {
+            const container = document.getElementById('menu-items');
+            container.innerHTML = menuItems.map((item, index) => createMenuItemHTML(item, index)).join('');
+        }
+
+        function addMenuItem() {
+            menuItems.push({
+                nome: "",
+                descricao: "",
+                preco: 0.00
+            });
+            saveMenuItems();
+            renderMenuItems();
+        }
+
+        function removeItem(index) {
+            menuItems.splice(index, 1);
+            saveMenuItems();
+            renderMenuItems();
+        }
+
+        function updateItem(index, field, value) {
+            menuItems[index][field] = field === 'preco' ? parseFloat(value) : value;
+            saveMenuItems();
+        }
+
+        function saveMenuItems() {
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+        }
+
+        function previewMenu() {
+            saveMenuItems();
+            window.location.href = 'prevs.html';
+        }
+
+        // Renderizar itens ao carregar a página
+        renderMenuItems();
+    </script>
+</body>
+</html> 
