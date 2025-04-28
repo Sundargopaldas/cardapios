@@ -1,5 +1,4 @@
-import os
-import re
+import os, re
 from datetime import datetime
 
 log_dir = "log"
@@ -15,6 +14,7 @@ def log(msg: str):
     linha = f"[{timestamp}] {msg}\n"
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(linha)
+        print(linha)
 
 def sanitize_filename(name: str) -> str:
     return re.sub(r'[\\/*?:"<>|]', "_", name)

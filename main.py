@@ -1,15 +1,18 @@
 import os
+import json
 import requests
 import traceback
 import pandas as pd
 from typing import List
 from pathlib import Path
 from pydantic import BaseModel
+from dotenv import load_dotenv
 from uteis import sanitize_filename, log
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from gerar_cardapio import gerar_cardapio_formatado, criar_template_base
+from gpt import gerar_descricao_imagem, gerar_imagem_a_partir_da_descricao
 
 app = FastAPI()
 
@@ -63,10 +66,16 @@ async def upload_cardapio(file: UploadFile = File(...)):
 
 @app.post("/upload-images")
 async def upload_images(files: List[UploadFile] = File(...)):
+    USA_IA_PARA_DESCRICAO = False
+
     if len(files) == 0:
         raise HTTPException(status_code=400, detail="Nenhum arquivo enviado")
-
+    
     saved_files = []
+    descriptions = {}
+    folder_path = "uploads/images"
+    os.makedirs(folder_path, exist_ok=True)
+
     for file in files:
         filename_original = file.filename
         log(f"Recebendo imagem: {filename_original}")
@@ -75,7 +84,7 @@ async def upload_images(files: List[UploadFile] = File(...)):
             log(f"Arquivo ignorado (formato inválido): {filename_original}")
             continue
 
-        file_path = os.path.join("uploads/images", filename_original)
+        file_path = os.path.join(folder_path, filename_original)
 
         try:
             contents = await file.read()
@@ -83,15 +92,49 @@ async def upload_images(files: List[UploadFile] = File(...)):
                 f.write(contents)
 
             log(f"Imagem salva como: {file_path}")
-            saved_files.append(file_path)
+            saved_files.append(filename_original)
+
+            nome_base = os.path.splitext(filename_original)[0]
+
+            public_url = f"https://i.imgur.com/9YFRSkw.jpeg"  # ou localhost no seu caso real
+
+            if USA_IA_PARA_DESCRICAO:
+                descricao = await gerar_descricao_imagem(public_url, nome_base)
+            else:
+                # 🔵 Ler a descrição salva no JSON
+                descriptions_path = os.path.join("uploads", "images", "descriptions.json")
+                if os.path.exists(descriptions_path):
+                    with open(descriptions_path, "r", encoding="utf-8") as f:
+                        descriptions_json = json.load(f)
+                        descricao = descriptions_json.get(nome_base, "Descrição não disponível.")
+                        log(f"🔵 Descrição lida do JSON para {nome_base}: {descricao}")
+                else:
+                    log(f"⚠️ Descriptions.json não encontrado. Usando descrição padrão para {nome_base}.")
+                    descricao = "Descrição não disponível."
+
+            # if USA_IA_PARA_DESCRICAO:
+            #     descricao = await gerar_descricao_imagem(public_url, nome_base)
+            # else:
+            #     descricao = nome_base
+
+            descriptions[nome_base] = descricao
+
+            # 🖼️ Agora gera a imagem usando a descrição:
+            await gerar_imagem_a_partir_da_descricao(nome_base, descricao)
 
         except Exception as e:
-            log(f"Erro ao salvar imagem: {filename_original} - {str(e)}")
+            log(f"Erro ao salvar ou processar imagem {filename_original}: {str(e)}")
             if os.path.exists(file_path):
                 os.remove(file_path)
 
     if not saved_files:
         raise HTTPException(status_code=400, detail="Nenhuma imagem válida foi enviada")
+
+    descriptions_path = os.path.join(folder_path, "descriptions.json")
+    with open(descriptions_path, 'w', encoding='utf-8') as f:
+        json.dump(descriptions, f, ensure_ascii=False, indent=4)
+    
+    log(f"Descrições salvas em {descriptions_path}")
 
     return {
         "message": f"{len(saved_files)} imagem(ns) enviada(s) com sucesso",
@@ -168,28 +211,29 @@ def processa_prato(nome: str, descricao: str, preco: float, categoria: str, imag
                 size = "256x256"
 
             log(f"Modo: GPT ATIVADO | Modelo: {model} | Tamanho: {size}")
+            
+            log(f">> Gerando 3 imagens para {nome}")
+            response = client.images.generate(
+                model=model,
+                prompt=prompt,
+                n=3, 
+                size=size,
+                response_format="url"
+            )
 
-            for i in range(1, 4):
-                log(f">> Gerando imagem {i} para {nome}")
-                response = client.images.generate(
-                    model=model,
-                    prompt=prompt,
-                    n=1,
-                    size=size,
-                    response_format="url"
-                )
+            for idx, image_data in enumerate(response.data, start=1):
+                image_url = image_data.url
+                log(f"URL da imagem gerada {idx}: {image_url}")
 
-                image_url = response.data[0].url
-                log(f"URL da imagem gerada {i}: {image_url}")
-
-                image_data = requests.get(image_url).content
-                image_name = sanitize_filename(nome) + f"{i}.png"
+                image_content = requests.get(image_url).content
+                image_name = sanitize_filename(nome) + f"{idx}.png"
                 image_path = os.path.join(folder_path, image_name)
 
                 with open(image_path, "wb") as f:
-                    f.write(image_data)
+                    f.write(image_content)
 
                 log(f"Imagem salva em: {image_path}")
+
         else:
             log("Modo: FAKE | Imagens locais serão usadas se existirem")
             for i in range(1, 4):
@@ -201,6 +245,7 @@ def processa_prato(nome: str, descricao: str, preco: float, categoria: str, imag
                 else:
                     log(f"[Modo Simulado] ERRO: Imagem {image_path} não encontrada.")
                     raise FileNotFoundError(f"Imagem não encontrada em modo simulado: {image_path} [processa_prato]")
+
     except Exception as e:
         log("Erro ao processar imagem:\n" + traceback.format_exc())
 
@@ -268,15 +313,37 @@ async def obter_cardapio(nome_arquivo: str):
 
 @app.post("/aprovar-layout")
 async def aprovar_layout(data: dict = Body(...)):
-    log(f"Recebido POST /aprovar-layout com data: {data}")
-    layout = data.get("layout")
-    if not layout:
-        log("❌ Nenhum layout especificado no body.")
-        raise HTTPException(status_code=400, detail="Layout não especificado")
-    
-    log(f"✅ Layout aprovado: {layout}")
-    return {"message": "Layout aprovado com sucesso"}
+    log(f"aprovar_layout")
 
+    nomeArquivo = data.get("nomeArquivo")
+    if not nomeArquivo:
+        raise HTTPException(status_code=400, detail="nomeArquivo não especificado")
+    log(f"nomeArquivo {nomeArquivo}")
+
+    if not nomeArquivo.lower().endswith(".png"):
+        nomeArquivo += ".png"
+
+    imagem_path = os.path.join("uploads", "final", nomeArquivo)
+
+    output_pdf_path = os.path.join("menus", "cardapio.pdf")
+    formato = data.get("formato")
+
+    from pdf import gerar_pdf_simples
+    gerar_pdf_simples(imagem_path, output_pdf_path, formato)
+
+    return {"message": "PDF gerado com sucesso", "arquivo_pdf": output_pdf_path}
+
+@app.get("/menus/cardapio.pdf")
+async def download_cardapio_pdf():
+    log(f"download_cardapio_pdf")
+    caminho = os.path.join("menus", "cardapio.pdf")
+    log(f"Download solicitado: {caminho}")
+
+    if os.path.exists(caminho):
+        return FileResponse(caminho, media_type="application/pdf", filename="cardapio.pdf")
+    else:
+        raise HTTPException(status_code=404, detail="Arquivo PDF não encontrado")
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001) 
