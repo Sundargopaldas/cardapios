@@ -8,8 +8,8 @@ from pathlib import Path
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from uteis import sanitize_filename, log
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from gerar_cardapio import gerar_cardapio_formatado, criar_template_base
 from gpt import gerar_descricao_imagem, gerar_imagem_a_partir_da_descricao
@@ -111,11 +111,6 @@ async def upload_images(files: List[UploadFile] = File(...)):
                 else:
                     log(f"⚠️ Descriptions.json não encontrado. Usando descrição padrão para {nome_base}.")
                     descricao = "Descrição não disponível."
-
-            # if USA_IA_PARA_DESCRICAO:
-            #     descricao = await gerar_descricao_imagem(public_url, nome_base)
-            # else:
-            #     descricao = nome_base
 
             descriptions[nome_base] = descricao
 
@@ -343,6 +338,10 @@ async def download_cardapio_pdf():
         return FileResponse(caminho, media_type="application/pdf", filename="cardapio.pdf")
     else:
         raise HTTPException(status_code=404, detail="Arquivo PDF não encontrado")
+    
+@app.get("/teste", response_class=PlainTextResponse)
+async def teste():
+    return "OK"
     
 if __name__ == "__main__":
     import uvicorn
